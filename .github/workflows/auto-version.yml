@@ -41,6 +41,7 @@ jobs:
       - name: Create new tag
         run: |
           git tag ${{ steps.get-tag.outputs.new_tag }}
-          git push origin ${{ steps.get-tag.outputs.new_tag }}
+          git tag latest
+          git push origin ${{ steps.get-tag.outputs.new_tag }} latest
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS }}
