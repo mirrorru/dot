@@ -14,4 +14,3 @@ help:
 .PHONY: test
 test: ## Запускает unit-тесты
 	@echo "Запуск тестов..."
-
