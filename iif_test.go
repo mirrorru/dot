@@ -1,9 +1,11 @@
 package dot_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mirrorru/dot"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,9 +20,9 @@ func TestIif(t *testing.T) {
 	}{
 		{name: "string true", condition: true, onTrue: "a", onFalse: "b", expect: "a"},
 		{name: "string false", condition: false, onTrue: "aa", onFalse: "bb", expect: "bb"},
-		{name: "int true", condition: false, onTrue: 1, onFalse: 2, expect: 1},
+		{name: "int true", condition: true, onTrue: 1, onFalse: 2, expect: 1},
 
-    {name: "int false", condition: false, onTrue: 11, onFalse: 22, expect: 22},
+		{name: "int false", condition: false, onTrue: 11, onFalse: 22, expect: 22},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -28,4 +30,16 @@ func TestIif(t *testing.T) {
 			assert.Equal(t, tc.expect, dot.Iif(tc.condition, tc.onTrue, tc.onFalse))
 		})
 	}
+}
+
+func ExampleIif() {
+	for i := range 4 {
+		fmt.Println(dot.Iif(i%2 == 0, "Even", "Odd"))
+	}
+
+	// Output:
+	// Even
+	// Odd
+	// Even
+	// Odd
 }

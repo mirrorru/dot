@@ -1,16 +1,33 @@
 .DEFAULT_GOAL := help
 
-## help: Вывести список доступных команд
+## help: Print available commands
 .PHONY: help
 help:
-	@echo "Используйте: make <цель>"
+	@echo "Usage: make <target>"
 	@echo ""
-	@echo "Доступные цели:"
+	@echo "Available targets:"
 	@echo ""
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo ""
 
-## test: Запустить тесты
+LOCAL_BIN := $(CURDIR)/bin
+
+GOLANGCI_VERSION := 2.3.0
+
 .PHONY: test
-test: ## Запускает unit-тесты
-	@echo "Запуск тестов..."
+test: ## Starts unit-tests
+	@echo "Start unit-tests..."
+
+.PHONY: install-bin
+install-bin: .install-golangci ## Install binaries
+
+.PHONY: .install-golangci
+.install-golangci: ## Install golangci linter
+	mkdir -p bin
+	#GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(LOCAL_BIN) v2.3.1
+
+.PHONY: lints
+lint: ## code checks with golangci
+	clear
+	$(LOCAL_BIN)/golangci-lint run --config=.golangci.yaml ./...
