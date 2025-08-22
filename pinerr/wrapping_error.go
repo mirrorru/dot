@@ -25,11 +25,9 @@ func (e *wrappingError) Unwrap() error {
 
 func (p *WrappingError) Produce(errToWrap error) error {
 	const getCallPlaceSkip = 5
-	if p.place.empty() {
-		p.once.Do(func() {
-			p.place = getCallPlace(getCallPlaceSkip)
-		})
-	}
+	p.once.Do(func() {
+		p.place = getCallPlace(getCallPlaceSkip)
+	})
 
 	return &wrappingError{
 		message:    fmt.Sprintf("%s @%s:%d", errToWrap.Error(), p.place.fileName, p.place.line),

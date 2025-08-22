@@ -21,7 +21,3 @@ func getCallPlace(skip int) callPlace {
 
 	return callPlace{name, line}
 }
-
-func (cp *callPlace) empty() bool {
-	return len(cp.fileName) == 0
-}
