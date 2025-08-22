@@ -16,7 +16,7 @@ func TestResult_MakeResult(t *testing.T) {
 		res := MakeResult(val, nil)
 
 		assert.Equal(t, val, res.val)
-		assert.Nil(t, res.err)
+		assert.NoError(t, res.err)
 	})
 
 	t.Run("error result", func(t *testing.T) {
@@ -25,7 +25,7 @@ func TestResult_MakeResult(t *testing.T) {
 		res := MakeResult("", err)
 
 		assert.Equal(t, "", res.val)
-		assert.Equal(t, err, res.err)
+		assert.ErrorIs(t, err, res.err)
 	})
 }
 
@@ -63,7 +63,7 @@ func TestResult_Err(t *testing.T) {
 		t.Parallel()
 		res := Result[string]{val: "test", err: nil}
 
-		assert.Nil(t, res.Err())
+		assert.NoError(t, res.Err())
 	})
 }
 
@@ -105,7 +105,7 @@ func TestResult_OrEmpty(t *testing.T) {
 		res := Result[string]{val: "test", err: err}
 		empty := res.OrEmpty()
 
-		assert.Equal(t, "", empty)
+		assert.Empty(t, empty)
 	})
 }
 
@@ -143,7 +143,7 @@ func TestResult_Unwarp(t *testing.T) {
 
 		resultVal, resultErr := res.Unwarp()
 		assert.Equal(t, val, resultVal)
-		assert.Nil(t, resultErr)
+		assert.NoError(t, resultErr)
 	})
 
 	t.Run("returns value and error", func(t *testing.T) {
@@ -178,7 +178,7 @@ func TestResult_ToOption(t *testing.T) {
 
 		option := res.ToOption()
 		assert.False(t, option.Ok)
-		assert.Equal(t, "", option.Val) // zero value
+		assert.Empty(t, option.Val) // zero value
 	})
 }
 
@@ -242,7 +242,7 @@ func TestOption_Struct(t *testing.T) {
 		option := Option[string]{}
 
 		assert.False(t, option.Ok)
-		assert.Equal(t, "", option.Val)
+		assert.Empty(t, option.Val)
 	})
 }
 
@@ -298,7 +298,7 @@ func TestResult_ConcurrentAccess(t *testing.T) {
 			go func() {
 				assert.Equal(t, "safe", res.Val())
 				assert.False(t, res.IsErr())
-				assert.Nil(t, res.Err())
+				assert.NoError(t, res.Err())
 				done <- true
 			}()
 		}

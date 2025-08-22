@@ -17,6 +17,7 @@ GOLANGCI_VERSION := 2.3.0
 .PHONY: test
 test: ## Starts unit-tests
 	@echo "Start unit-tests..."
+	go test ./...
 
 .PHONY: install-bin
 install-bin: .install-golangci ## Install binaries
@@ -27,7 +28,7 @@ install-bin: .install-golangci ## Install binaries
 	#GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(LOCAL_BIN) v2.3.1
 
-.PHONY: lints
+.PHONY: lint
 lint: ## code checks with golangci
 	clear
 	$(LOCAL_BIN)/golangci-lint run --config=.golangci.yaml ./...

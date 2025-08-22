@@ -55,8 +55,8 @@ func TestProduce(t *testing.T) {
 
 	err1 := se.Produce()
 	require.Error(t, err1)
-	assert.Contains(t, err1.Error(), "some text")
-	assert.Contains(t, err1.Error(), "pinerr_test.TestProduce")
+	assert.Contains(t, err1.Error(), "some text")               //nolint:testifylint
+	assert.Contains(t, err1.Error(), "pinerr_test.TestProduce") //nolint:testifylint
 	assert.ErrorIs(t, err1, innerError)
 
 	err2 := se.Produce()
