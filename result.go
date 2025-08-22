@@ -26,7 +26,7 @@ func (r Result[T]) OrEmpty() (empty T) {
 		return r.val
 	}
 
-	return
+	return empty
 }
 
 func (r Result[T]) OrElse(anotherVal T) T {

@@ -190,7 +190,7 @@ func TestConventResult(t *testing.T) {
 		srcErr := errors.New("source error")
 		srcRes := Result[int]{val: 42, err: srcErr}
 
-		converter := func(src int) (string, error) {
+		converter := func(_ int) (string, error) {
 			return "converted", nil
 		}
 
@@ -202,7 +202,7 @@ func TestConventResult(t *testing.T) {
 	t.Run("converts successful result with successful converter", func(t *testing.T) {
 		t.Parallel()
 		srcRes := Result[int]{val: 42, err: nil}
-		converter := func(src int) (string, error) {
+		converter := func(_ int) (string, error) {
 			return "converted", nil
 		}
 
@@ -215,7 +215,7 @@ func TestConventResult(t *testing.T) {
 		t.Parallel()
 		srcRes := Result[int]{val: 42, err: nil}
 		converterErr := errors.New("converter error")
-		converter := func(src int) (string, error) {
+		converter := func(_ int) (string, error) {
 			return "", converterErr
 		}
 
@@ -294,7 +294,7 @@ func TestResult_ConcurrentAccess(t *testing.T) {
 
 		// Запускаем несколько горутин для чтения
 		done := make(chan bool, 10)
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			go func() {
 				assert.Equal(t, "safe", res.Val())
 				assert.False(t, res.IsErr())
@@ -304,7 +304,7 @@ func TestResult_ConcurrentAccess(t *testing.T) {
 		}
 
 		// Ждем завершения всех горутин
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			<-done
 		}
 	})
