@@ -1,6 +1,7 @@
 package pinerr_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -10,16 +11,21 @@ import (
 )
 
 func ExampleStaticError_Produce() {
-	var se = pinerr.NewStatic("some_err")
+	innerError := errors.New("inner error")
+	se := pinerr.NewStatic("some_err: %w", innerError)
 
 	err := func() error {
 		// StaticError remember place of first calling Produce()
 		return se.Produce()
 	}()
 	fmt.Println(err)
+	if errors.Is(err, innerError) {
+		fmt.Println("inner error found")
+	}
 
 	// Output:
-	// some_err @github.com/mirrorru/dot/pinerr_test.ExampleStaticError_Produce.func1:17
+	// some_err: inner error @github.com/mirrorru/dot/pinerr_test.ExampleStaticError_Produce.func1:19
+	// inner error found
 }
 
 func TestNewStatic(t *testing.T) {
@@ -44,11 +50,14 @@ func TestNewStatic(t *testing.T) {
 func TestProduce(t *testing.T) {
 	t.Parallel()
 
-	se := pinerr.NewStatic("bla-bla")
+	innerError := errors.New("inner error")
+	se := pinerr.NewStatic("some text: %w", innerError)
+
 	err1 := se.Produce()
 	require.Error(t, err1)
-	assert.Contains(t, err1.Error(), "bla-bla")
-	assert.Contains(t, err1.Error(), "pinerr_test.TestProduce")
+	assert.Contains(t, err1.Error(), "some text")               //nolint:testifylint
+	assert.Contains(t, err1.Error(), "pinerr_test.TestProduce") //nolint:testifylint
+	assert.ErrorIs(t, err1, innerError)                         //nolint:testifylint
 
 	err2 := se.Produce()
 	assert.Equal(t, err1, err2)
