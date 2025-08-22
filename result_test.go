@@ -24,7 +24,7 @@ func TestResult_MakeResult(t *testing.T) {
 		err := errors.New("test error")
 		res := MakeResult("", err)
 
-		assert.Equal(t, "", res.val)
+		assert.Empty(t, res.val)
 		assert.ErrorIs(t, err, res.err)
 	})
 }
