@@ -3,7 +3,7 @@ package dot
 import "sync"
 
 type SyncSlice[T any] struct {
-	mx     sync.RWMutex
+	mx     sync.Mutex
 	values []T
 }
 
@@ -13,8 +13,10 @@ func (s *SyncSlice[T]) InitSize(length, capacity int) {
 	}
 }
 
-func (s *SyncSlice[T]) Values() []T {
-	return s.values
+func (s *SyncSlice[T]) Len() int {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+	return len(s.values)
 }
 
 func (s *SyncSlice[T]) Append(val T) {
@@ -25,8 +27,8 @@ func (s *SyncSlice[T]) Append(val T) {
 }
 
 func (s *SyncSlice[T]) Get(index int) (val T) {
-	s.mx.RLock()
-	defer s.mx.RUnlock()
+	s.mx.Lock()
+	defer s.mx.Unlock()
 
 	return s.values[index]
 }
