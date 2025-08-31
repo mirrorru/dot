@@ -32,9 +32,9 @@ install-bin: .install-golangci ## Install binaries
 lint: ## code checks with golangci
 	clear
 	$(LOCAL_BIN)/golangci-lint run \
-		--config=.golangci.yaml
+		--config=.golangci.yaml \
 		--new-from-rev=origin/main \
-		--sort-results \
 		--max-issues-per-linter=1000 \
 		--max-same-issues=1000 \
 		./...
+
