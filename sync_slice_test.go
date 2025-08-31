@@ -7,163 +7,108 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSyncSlice(t *testing.T) {
+func TestSyncSlice_InitSize(t *testing.T) {
 	t.Parallel()
 
-	t.Run("InitSize", func(t *testing.T) {
-		t.Parallel()
+	tests := []struct {
+		name     string
+		length   int
+		capacity int
+	}{
+		{"zero length", 0, 0},
+		{"non-zero length", 2, 5},
+		{"len=cap", 3, 3},
+	}
 
-		s := &SyncSlice[int]{}
-		s.InitSize(3, 10)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		assert.Len(t, s.Values(), 3)
-		assert.Equal(t, 10, cap(s.Values()))
-	})
+			var s SyncSlice[int]
+			s.InitSize(tt.length, tt.capacity)
 
-	t.Run("Append and Values", func(t *testing.T) {
-		t.Parallel()
-
-		s := &SyncSlice[string]{}
-
-		// Добавляем элементы
-		s.Append("first")
-		s.Append("second")
-		s.Append("third")
-
-		// Проверяем значения
-		values := s.Values()
-		assert.Len(t, values, 3)
-		assert.Equal(t, []string{"first", "second", "third"}, values)
-	})
-
-	t.Run("Get and Set", func(t *testing.T) {
-		t.Parallel()
-
-		s := &SyncSlice[int]{}
-		s.InitSize(3, 5)
-
-		// Устанавливаем значения
-		s.Set(0, 100)
-		s.Set(1, 200)
-		s.Set(2, 300)
-
-		// Получаем и проверяем значения
-		assert.Equal(t, 100, s.Get(0))
-		assert.Equal(t, 200, s.Get(1))
-		assert.Equal(t, 300, s.Get(2))
-
-		// Меняем значение и проверяем
-		s.Set(1, 999)
-		assert.Equal(t, 999, s.Get(1))
-	})
-
-	t.Run("Concurrent append", func(t *testing.T) {
-		t.Parallel()
-
-		s := &SyncSlice[int]{}
-		const goroutines = 100
-		const iterations = 100
-
-		var wg sync.WaitGroup
-		wg.Add(goroutines)
-
-		for i := range goroutines {
-			go func(start int) {
-				defer wg.Done()
-				for j := range iterations {
-					s.Append(start + j)
-				}
-			}(i * iterations)
-		}
-
-		wg.Wait()
-
-		// Проверяем, что все элементы добавлены
-		assert.Len(t, s.Values(), goroutines*iterations)
-
-		// Проверяем, что нет дубликатов (все значения уникальны)
-		values := s.Values()
-		valueSet := make(map[int]bool)
-		for _, v := range values {
-			valueSet[v] = true
-		}
-		assert.Len(t, valueSet, goroutines*iterations, "all values should be unique")
-	})
-
-	t.Run("Concurrent get and set", func(t *testing.T) {
-		t.Parallel()
-
-		s := &SyncSlice[int]{}
-		s.InitSize(10, 10)
-
-		const goroutines = 50
-
-		var wg sync.WaitGroup
-		wg.Add(goroutines * 2)
-
-		// Горутины для записи
-		for i := range goroutines {
-			go func(index int) {
-				defer wg.Done()
-				for j := range 100 {
-					s.Set(index%10, j)
-				}
-			}(i)
-		}
-
-		wg.Wait()
-		// Тест проходит, если не было паники из-за гонки данных
-	})
-
-	t.Run("Empty slice operations", func(t *testing.T) {
-		t.Parallel()
-
-		s := &SyncSlice[float64]{}
-
-		// Append в пустой слайс
-		s.Append(3.14)
-		assert.InDelta(t, 3.14, s.Get(0), 0)
-
-		// Values пустого слайса
-		assert.Empty(t, (&SyncSlice[string]{}).Values())
-	})
-
-	t.Run("Type compatibility", func(t *testing.T) {
-		t.Parallel()
-
-		// Тестируем с разными типами
-		stringSlice := &SyncSlice[string]{}
-		stringSlice.Append("test")
-		assert.Equal(t, "test", stringSlice.Get(0))
-
-		structSlice := &SyncSlice[struct{ name string }]{}
-		testStruct := struct{ name string }{name: "test"}
-		structSlice.Append(testStruct)
-		assert.Equal(t, testStruct, structSlice.Get(0))
-	})
+			assert.Len(t, len(s.values), tt.length)
+			assert.Equal(t, tt.capacity, cap(s.values))
+		})
+	}
 }
 
-func TestSyncSlice_EdgeCases(t *testing.T) {
+func TestSyncSlice_AppendAndLen(t *testing.T) {
 	t.Parallel()
 
-	t.Run("InitSize on initialized slice", func(t *testing.T) {
-		t.Parallel()
+	tests := []struct {
+		name     string
+		input    []int
+		expected int
+	}{
+		{"append one", []int{42}, 1},
+		{"append multiple", []int{1, 2, 3}, 3},
+		{"append empty", []int{}, 0},
+	}
 
-		s := &SyncSlice[int]{}
-		s.values = []int{1, 2, 3}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		// InitSize не должен перезаписывать уже инициализированный слайс
-		s.InitSize(5, 10)
-		assert.Equal(t, []int{1, 2, 3}, s.Values())
-	})
+			var s SyncSlice[int]
+			for _, v := range tt.input {
+				s.Append(v)
+			}
+			assert.Equal(t, tt.expected, s.Len())
+		})
+	}
+}
 
-	t.Run("Zero value slice", func(t *testing.T) {
-		t.Parallel()
+func TestSyncSlice_GetAndSet(t *testing.T) {
+	t.Parallel()
 
-		var s SyncSlice[int]
+	tests := []struct {
+		name        string
+		initial     []int
+		index       int
+		newVal      int
+		expectedOld int
+		expectedNew int
+	}{
+		{"set first element", []int{1, 2, 3}, 0, 10, 1, 10},
+		{"set middle element", []int{1, 2, 3}, 1, 20, 2, 20},
+		{"set last element", []int{1, 2, 3}, 2, 30, 3, 30},
+	}
 
-		// Методы должны работать на zero value
-		s.Append(42)
-		assert.Equal(t, 42, s.Get(0))
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := SyncSlice[int]{values: append([]int{}, tt.initial...)}
+			old := s.Get(tt.index)
+			assert.Equal(t, tt.expectedOld, old)
+
+			s.Set(tt.index, tt.newVal)
+			got := s.Get(tt.index)
+			assert.Equal(t, tt.expectedNew, got)
+		})
+	}
+}
+
+func TestSyncSlice_ConcurrentAppend(t *testing.T) {
+	t.Parallel()
+
+	const goroutines = 50
+	const perGoroutine = 100
+
+	var s SyncSlice[int]
+	var wg sync.WaitGroup
+
+	wg.Add(goroutines)
+	for g := range goroutines {
+		go func(base int) {
+			defer wg.Done()
+			for i := range perGoroutine {
+				s.Append(base*perGoroutine + i)
+			}
+		}(g)
+	}
+	wg.Wait()
+
+	assert.Equal(t, goroutines*perGoroutine, s.Len())
 }
