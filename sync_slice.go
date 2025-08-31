@@ -1,6 +1,9 @@
 package dot
 
-import "sync"
+import (
+	"iter"
+	"sync"
+)
 
 type SyncSlice[T any] struct {
 	mx     sync.Mutex
@@ -38,4 +41,34 @@ func (s *SyncSlice[T]) Set(index int, val T) {
 	defer s.mx.Unlock()
 
 	s.values[index] = val
+}
+
+func (s *SyncSlice[T]) Seq() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		s.mx.Lock()
+		snapshot := make([]T, len(s.values))
+		copy(snapshot, s.values)
+		s.mx.Unlock()
+
+		for _, v := range snapshot {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+func (s *SyncSlice[T]) Seq2() iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		s.mx.Lock()
+		snapshot := make([]T, len(s.values))
+		copy(snapshot, s.values)
+		s.mx.Unlock()
+
+		for i, v := range snapshot {
+			if !yield(i, v) {
+				return
+			}
+		}
+	}
 }
