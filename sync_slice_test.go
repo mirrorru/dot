@@ -27,7 +27,7 @@ func TestSyncSlice_InitSize(t *testing.T) {
 			var s SyncSlice[int]
 			s.InitSize(tt.length, tt.capacity)
 
-			assert.Len(t, len(s.values), tt.length)
+			assert.Len(t, s.values, tt.length)
 			assert.Equal(t, tt.capacity, cap(s.values))
 		})
 	}
