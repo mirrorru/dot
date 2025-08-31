@@ -12,10 +12,6 @@
 
 version: "2"
 
-run:
-  skip-dirs:
-    - temp
-
 issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.
