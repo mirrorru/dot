@@ -43,3 +43,29 @@ func ExampleIif() {
 	// Even
 	// Odd
 }
+
+func TestMustMake(t *testing.T) {
+	t.Parallel()
+
+	const mustVal = "Abc"
+	assert.NotPanics(t, func() {
+		x := dot.MustMake(mustVal, nil)
+		assert.Equal(t, mustVal, x)
+	})
+
+	assert.Panics(t, func() {
+		dot.MustMake(mustVal, assert.AnError)
+	})
+}
+
+func TestMustDo(t *testing.T) {
+	t.Parallel()
+
+	assert.NotPanics(t, func() {
+		dot.MustDo(nil)
+	})
+
+	assert.Panics(t, func() {
+		dot.MustDo(assert.AnError)
+	})
+}
