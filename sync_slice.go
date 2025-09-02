@@ -43,6 +43,15 @@ func (s *SyncSlice[T]) Set(index int, val T) {
 	s.values[index] = val
 }
 
+func (s *SyncSlice[T]) Values() []T {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+	snapshot := make([]T, len(s.values))
+	copy(snapshot, s.values)
+
+	return snapshot
+}
+
 func (s *SyncSlice[T]) Seq() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		s.mx.Lock()

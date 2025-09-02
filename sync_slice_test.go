@@ -112,3 +112,43 @@ func TestSyncSlice_ConcurrentAppend(t *testing.T) {
 
 	assert.Equal(t, goroutines*perGoroutine, s.Len())
 }
+
+func TestSyncSlice_Values(t *testing.T) {
+	t.Parallel()
+
+	var s SyncSlice[int]
+	src := []int{10, 20, 30}
+	for i := range src {
+		s.Append(src[i])
+	}
+	assert.Equal(t, src, s.Values())
+}
+
+func TestSyncSlice_Seq(t *testing.T) {
+	t.Parallel()
+
+	var s SyncSlice[int]
+	src := []int{10, 20, 30}
+	for i := range src {
+		s.Append(src[i])
+	}
+	idx := 0
+	for item := range s.Seq() {
+		assert.Equal(t, src[idx], item)
+		idx++
+	}
+}
+
+func TestSyncSlice_Seq2(t *testing.T) {
+	t.Parallel()
+
+	var s SyncSlice[int]
+	src := []int{10, 20, 30}
+	for i := range src {
+		s.Append(src[i])
+	}
+
+	for k, v := range s.Seq2() {
+		assert.Equal(t, src[k], v)
+	}
+}
