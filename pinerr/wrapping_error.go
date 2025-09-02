@@ -3,11 +3,16 @@ package pinerr
 import (
 	"fmt"
 	"sync"
+
+	"github.com/mirrorru/dot"
 )
 
 type WrappingError struct {
 	once  sync.Once
-	place callPlace // Calling place, inits once
+	place struct {
+		fileName string
+		line     int
+	}
 }
 
 type wrappingError struct {
@@ -26,7 +31,7 @@ func (e *wrappingError) Unwrap() error {
 func (p *WrappingError) Produce(errToWrap error) error {
 	const getCallPlaceSkip = 5
 	p.once.Do(func() {
-		p.place = getCallPlace(getCallPlaceSkip)
+		p.place.fileName, p.place.line = dot.GetCallPlace(getCallPlaceSkip)
 	})
 
 	return &wrappingError{
