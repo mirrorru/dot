@@ -34,7 +34,7 @@ lint: ## code checks with golangci
 	$(LOCAL_BIN)/golangci-lint run \
 		--config=.golangci.yaml \
 		--new-from-rev=origin/main \
-		--max-issues-per-linter=1000 \
-		--max-same-issues=1000 \
+		--max-issues-per-linter=100 \
+		--max-same-issues=50 \
 		./...
 
