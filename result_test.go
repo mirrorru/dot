@@ -194,7 +194,7 @@ func TestConventResult(t *testing.T) {
 			return "converted", nil
 		}
 
-		result := ConventResult(srcRes, converter)
+		result := ConvertResult(srcRes, converter)
 		assert.True(t, result.IsErr())
 		assert.Equal(t, srcErr, result.Err())
 	})
@@ -206,7 +206,7 @@ func TestConventResult(t *testing.T) {
 			return "converted", nil
 		}
 
-		result := ConventResult(srcRes, converter)
+		result := ConvertResult(srcRes, converter)
 		assert.False(t, result.IsErr())
 		assert.Equal(t, "converted", result.Val())
 	})
@@ -219,7 +219,7 @@ func TestConventResult(t *testing.T) {
 			return "", converterErr
 		}
 
-		result := ConventResult(srcRes, converter)
+		result := ConvertResult(srcRes, converter)
 		assert.True(t, result.IsErr())
 		assert.Equal(t, converterErr, result.Err())
 	})
