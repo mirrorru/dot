@@ -9,6 +9,13 @@ func MakeResult[T any](val T, err error) Result[T] {
 	return Result[T]{val: val, err: err}
 }
 
+func (r Result[T]) SaveVal(dest *T) Result[T] {
+	if r.err == nil {
+		*dest = r.val
+	}
+	return r
+}
+
 func (r Result[T]) IsErr() bool {
 	return r.err != nil
 }
@@ -49,7 +56,7 @@ func (r Result[T]) ToOption() Option[T] {
 	return Option[T]{Val: r.val, Ok: true}
 }
 
-func ConventResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error)) Result[T2] {
+func ConvertResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error)) Result[T2] {
 	if res.err != nil {
 		return Result[T2]{err: res.err}
 	}
