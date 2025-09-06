@@ -2,9 +2,12 @@ package dot
 
 import (
 	"errors"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResult_MakeResult(t *testing.T) {
@@ -307,5 +310,55 @@ func TestResult_ConcurrentAccess(t *testing.T) {
 		for range 10 {
 			<-done
 		}
+	})
+}
+
+func TestResult_SaveVal(t *testing.T) {
+	t.Parallel()
+	const testVal = int(42)
+
+	t.Run("int type", func(t *testing.T) {
+		t.Parallel()
+		res := MakeResult(testVal, nil)
+		var dest int
+		require.NotPanics(t, func() {
+			res.SaveVal(&dest)
+		})
+		assert.Equal(t, testVal, dest)
+	})
+	t.Run("struct type", func(t *testing.T) {
+		t.Parallel()
+		type MyStruct struct {
+			val int
+		}
+		reference := MyStruct{val: testVal}
+		res := MakeResult(reference, nil)
+		var dest MyStruct
+		require.NotPanics(t, func() {
+			res.SaveVal(&dest)
+		})
+		assert.Equal(t, reference, dest)
+	})
+	t.Run("time stringer", func(t *testing.T) {
+		t.Parallel()
+		reference := time.Now()
+		res := MakeResult(reference, nil)
+		var dest fmt.Stringer
+		require.NotPanics(t, func() {
+			res.SaveVal(&dest)
+		})
+		assert.Equal(t, reference, dest)
+	})
+	t.Run("struct not stringer type", func(t *testing.T) {
+		t.Parallel()
+		type MyStruct struct {
+			val int
+		}
+		reference := MyStruct{val: testVal}
+		res := MakeResult(reference, nil)
+		var dest fmt.Stringer
+		assert.Panics(t, func() {
+			res.SaveVal(&dest)
+		})
 	})
 }

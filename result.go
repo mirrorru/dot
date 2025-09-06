@@ -1,5 +1,10 @@
 package dot
 
+import (
+	"fmt"
+	"reflect"
+)
+
 type Result[T any] struct {
 	val T
 	err error
@@ -9,10 +14,27 @@ func MakeResult[T any](val T, err error) Result[T] {
 	return Result[T]{val: val, err: err}
 }
 
-func (r Result[T]) SaveVal(dest *T) Result[T] {
-	if r.err == nil {
-		*dest = r.val
+func (r Result[T]) SaveVal(dest any) Result[T] {
+	if r.err != nil {
+		return r
 	}
+
+	// Используем reflection для проверки и присвоения
+	v := reflect.ValueOf(dest)
+	if v.Kind() != reflect.Ptr {
+		panic(fmt.Errorf("expected pointer to value or interface, got %v", v.Kind()))
+	}
+
+	// Получаем значение, на которое указывает pointer
+	v = v.Elem()
+	valueVal := reflect.ValueOf(r.val)
+	if v.Kind() == reflect.Interface && !valueVal.Type().Implements(v.Type()) {
+		panic(fmt.Errorf("value of type %v does not implement interface %v",
+			valueVal.Type(), v.Type()))
+	}
+
+	v.Set(valueVal)
+
 	return r
 }
 
