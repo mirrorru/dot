@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestResult_MakeResult(t *testing.T) {
+func TestMakeResult(t *testing.T) {
 	t.Parallel()
 
 	t.Run("successful result", func(t *testing.T) {
@@ -360,5 +360,26 @@ func TestResult_SaveVal(t *testing.T) {
 		assert.Panics(t, func() {
 			res.SaveVal(&dest)
 		})
+	})
+}
+
+func TestCastResult(t *testing.T) {
+	t.Parallel()
+
+	t.Run("successful result", func(t *testing.T) {
+		t.Parallel()
+		val := "test"
+		res := CastResult[string](MakeResult[any](val, nil))
+
+		assert.Equal(t, val, res.val)
+		assert.NoError(t, res.err)
+	})
+
+	t.Run("cast error", func(t *testing.T) {
+		t.Parallel()
+		val := "test"
+		res := CastResult[int](MakeResult[any](val, nil))
+
+		assert.Error(t, res.err)
 	})
 }

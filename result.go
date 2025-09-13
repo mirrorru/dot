@@ -1,6 +1,7 @@
 package dot
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
@@ -84,4 +85,18 @@ func ConvertResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error
 	}
 
 	return MakeResult(converter(res.val))
+}
+
+var errWrongCastingType = errors.New("wrong casting type")
+
+// CastResult - casts any to specified type or return error
+func CastResult[T any](src Result[any]) Result[T] {
+	if src.IsErr() {
+		return Result[T]{err: src.Err()}
+	}
+	val, ok := src.Val().(T)
+	if !ok {
+		return Result[T]{err: errWrongCastingType}
+	}
+	return MakeResult(val, nil)
 }
