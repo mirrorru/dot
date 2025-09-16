@@ -58,6 +58,20 @@ func TestMustMake(t *testing.T) {
 	})
 }
 
+func TestMust(t *testing.T) {
+	t.Parallel()
+
+	const mustVal = "Abc"
+	assert.NotPanics(t, func() {
+		x := dot.MustMake(mustVal, nil)
+		assert.Equal(t, mustVal, x)
+	})
+
+	assert.Panics(t, func() {
+		dot.Must(mustVal, assert.AnError)
+	})
+}
+
 func TestMustDo(t *testing.T) {
 	t.Parallel()
 
@@ -68,4 +82,24 @@ func TestMustDo(t *testing.T) {
 	assert.Panics(t, func() {
 		dot.MustDo(assert.AnError)
 	})
+}
+
+func TestGetIf(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		condition bool
+		onTrue    string
+		expect    string
+	}{
+		{name: "string true", condition: true, onTrue: "a", expect: "a"},
+		{name: "string false", condition: false, onTrue: "aa", expect: ""},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tc.expect, dot.GetIf(tc.condition, tc.onTrue))
+		})
+	}
 }
