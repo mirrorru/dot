@@ -80,6 +80,11 @@ func (r Result[T]) ToOption() Option[T] {
 }
 
 func ConvertResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error)) Result[T2] {
+	return FromResult(res, converter)
+}
+
+// FromResult - make new `Result[T2]` from  `Result[T1]` by `func(T1)Result[T2]`
+func FromResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error)) Result[T2] {
 	if res.err != nil {
 		return Result[T2]{err: res.err}
 	}
