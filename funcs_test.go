@@ -3,6 +3,7 @@ package dot_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/mirrorru/dot"
 
@@ -58,6 +59,16 @@ func TestMustMake(t *testing.T) {
 	})
 }
 
+func ExampleMustMake() {
+	s := dot.MustMake(func() (string, error) {
+		return "The created string", nil
+	}())
+	fmt.Println(s)
+
+	// Output:
+	// The created string
+}
+
 func TestMust(t *testing.T) {
 	t.Parallel()
 
@@ -84,6 +95,18 @@ func TestMustDo(t *testing.T) {
 	})
 }
 
+func ExampleMustDo() {
+	dot.MustDo(func() error {
+
+		fmt.Println("No error inside call")
+
+		return nil
+	}())
+
+	// Output:
+	// No error inside call
+}
+
 func TestGetIf(t *testing.T) {
 	t.Parallel()
 
@@ -102,4 +125,26 @@ func TestGetIf(t *testing.T) {
 			assert.Equal(t, tc.expect, dot.GetIf(tc.condition, tc.onTrue))
 		})
 	}
+}
+
+func ExampleGetIf() {
+	cond := time.Now().IsZero()
+
+	// Long way
+	var aLongWay, bLongWay int
+	if cond {
+		aLongWay = 1
+	}
+	if !cond {
+		bLongWay = 1
+	}
+
+	// Short way
+	aShortWay := dot.GetIf(cond, 2)
+	bShortWay := dot.GetIf(!cond, 2)
+
+	fmt.Println(aLongWay, bLongWay, aShortWay, bShortWay)
+
+	// Output:
+	// 0 1 0 2
 }
