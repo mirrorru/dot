@@ -97,7 +97,6 @@ func TestMustDo(t *testing.T) {
 
 func ExampleMustDo() {
 	dot.MustDo(func() error {
-
 		fmt.Println("No error inside call")
 
 		return nil

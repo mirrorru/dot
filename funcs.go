@@ -22,7 +22,7 @@ func MustMake[T any](val T, err error) T {
 	panic(err)
 }
 
-// MustDo - equivalent to MustMake.
+// Must - equivalent to MustMake.
 func Must[T any](val T, err error) T {
 	return MustMake(val, err)
 }

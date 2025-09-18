@@ -418,7 +418,7 @@ func TestFromResult(t *testing.T) {
 		val := 40
 		res1 := MakeResult(val, nil)
 
-		res2 := FromResult(res1, func(src int) (int, error) {
+		res2 := FromResult(res1, func(_ int) (int, error) {
 			return 0, assert.AnError
 		})
 		require.ErrorIs(t, res2.Err(), assert.AnError)
