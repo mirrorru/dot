@@ -10,6 +10,8 @@ func Iif[T any](condition bool, resultOnTrue T, resultOnFalse T) T {
 	return resultOnFalse
 }
 
+// MustMake - checks that the second argument is not an error then return first argument, otherwise it panics
+// Usually, the arguments is passed directly as the result of calling another method.
 func MustMake[T any](val T, err error) T {
 	if err == nil {
 		return val
@@ -20,10 +22,13 @@ func MustMake[T any](val T, err error) T {
 	panic(err)
 }
 
+// Must - equivalent to MustMake.
 func Must[T any](val T, err error) T {
 	return MustMake(val, err)
 }
 
+// MustDo - checks that the argument is not an error, otherwise it panics.
+// Usually, the argument is passed directly as the result of calling another method.
 func MustDo(err error) {
 	if err == nil {
 		return
@@ -34,7 +39,8 @@ func MustDo(err error) {
 	panic(err)
 }
 
-// GetIf - returns second argument if condition is true
+// GetIf - returns the second argument if the condition is true, default value otherwise.
+// Designed to replace the "var+if" block.
 func GetIf[T any](condition bool, resultOnTrue T) (result T) {
 	if condition {
 		return resultOnTrue

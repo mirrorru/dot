@@ -185,7 +185,7 @@ func TestResult_ToOption(t *testing.T) {
 	})
 }
 
-func TestConventResult(t *testing.T) {
+func TestConvertResult(t *testing.T) {
 	t.Parallel()
 
 	t.Run("propagates error from source result", func(t *testing.T) {
@@ -326,6 +326,7 @@ func TestResult_SaveVal(t *testing.T) {
 		})
 		assert.Equal(t, testVal, dest)
 	})
+
 	t.Run("struct type", func(t *testing.T) {
 		t.Parallel()
 		type MyStruct struct {
@@ -339,6 +340,7 @@ func TestResult_SaveVal(t *testing.T) {
 		})
 		assert.Equal(t, reference, dest)
 	})
+
 	t.Run("time stringer", func(t *testing.T) {
 		t.Parallel()
 		reference := time.Now()
@@ -349,6 +351,7 @@ func TestResult_SaveVal(t *testing.T) {
 		})
 		assert.Equal(t, reference, dest)
 	})
+
 	t.Run("struct not stringer type", func(t *testing.T) {
 		t.Parallel()
 		type MyStruct struct {
@@ -381,5 +384,43 @@ func TestCastResult(t *testing.T) {
 		res := CastResult[int](MakeResult[any](val, nil))
 
 		assert.Error(t, res.err)
+	})
+}
+
+func TestFromResult(t *testing.T) {
+	t.Parallel()
+
+	t.Run("result without error", func(t *testing.T) {
+		t.Parallel()
+		val := 40
+		res1 := MakeResult(val, nil)
+
+		res2 := FromResult(res1, func(src int) (int, error) {
+			return src + 2, nil
+		})
+		require.NoError(t, res2.err)
+		assert.Equal(t, 42, res2.val)
+	})
+
+	t.Run("result without error", func(t *testing.T) {
+		t.Parallel()
+		val := 40
+		res1 := MakeResult(val, assert.AnError)
+
+		res2 := FromResult(res1, func(src int) (int, error) {
+			return src + 2, nil
+		})
+		require.ErrorIs(t, res2.Err(), assert.AnError)
+	})
+
+	t.Run("processing error", func(t *testing.T) {
+		t.Parallel()
+		val := 40
+		res1 := MakeResult(val, nil)
+
+		res2 := FromResult(res1, func(_ int) (int, error) {
+			return 0, assert.AnError
+		})
+		require.ErrorIs(t, res2.Err(), assert.AnError)
 	})
 }

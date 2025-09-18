@@ -6,15 +6,18 @@ import (
 	"reflect"
 )
 
+// Result holds operation result - some value and error
 type Result[T any] struct {
 	val T
 	err error
 }
 
+// MakeResult maker Result from arguments
 func MakeResult[T any](val T, err error) Result[T] {
 	return Result[T]{val: val, err: err}
 }
 
+// SaveVal writes inner value to reference
 func (r Result[T]) SaveVal(dest any) Result[T] {
 	if r.err != nil {
 		return r
@@ -39,18 +42,22 @@ func (r Result[T]) SaveVal(dest any) Result[T] {
 	return r
 }
 
+// IsErr reports about not nil inner error
 func (r Result[T]) IsErr() bool {
 	return r.err != nil
 }
 
+// Err returns inner error
 func (r Result[T]) Err() error {
 	return r.err
 }
 
+// Val returns inner value
 func (r Result[T]) Val() T {
 	return r.val
 }
 
+// OrEmpty return default (empty) value, if result have error.
 func (r Result[T]) OrEmpty() (empty T) {
 	if r.err == nil {
 		return r.val
@@ -59,6 +66,7 @@ func (r Result[T]) OrEmpty() (empty T) {
 	return empty
 }
 
+// OrElse return argument value, if result have error
 func (r Result[T]) OrElse(anotherVal T) T {
 	if r.err == nil {
 		return r.val
@@ -67,10 +75,12 @@ func (r Result[T]) OrElse(anotherVal T) T {
 	return anotherVal
 }
 
+// Unwarp extracts value and error
 func (r Result[T]) Unwarp() (T, error) {
 	return r.val, r.err
 }
 
+// ToOption - converts Result to Option type
 func (r Result[T]) ToOption() Option[T] {
 	if r.err != nil {
 		return Option[T]{}
@@ -80,6 +90,11 @@ func (r Result[T]) ToOption() Option[T] {
 }
 
 func ConvertResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error)) Result[T2] {
+	return FromResult(res, converter)
+}
+
+// FromResult - make new `Result[T2]` from  `Result[T1]` by `func(T1)Result[T2]`
+func FromResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error)) Result[T2] {
 	if res.err != nil {
 		return Result[T2]{err: res.err}
 	}
