@@ -43,7 +43,7 @@ func (s *SyncStore[K, V]) Del(key K) {
 	delete(s.storage, key) // works with nil
 }
 
-// Итератор: вызывает handler для каждой пары ключ-значение
+// ForEach вызывает handler для каждой пары ключ-значение
 func (s *SyncStore[K, V]) ForEach(handler func(key K, value V)) {
 	s.mx.RLock()
 	defer s.mx.RUnlock()
