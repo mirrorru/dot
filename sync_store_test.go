@@ -12,28 +12,48 @@ func TestSyncStore_Basic(t *testing.T) {
 	t.Parallel()
 
 	var s dot.SyncStore[string, int]
-	s.Add("a", 1)
-	s.Add("b", 2)
+	s.Put("a", 1)
+	s.Put("b", 2)
 
-	v, ok := s.Get("a")
+	v, ok := s.GetCurrent("a")
 	assert.True(t, ok)
 	assert.Equal(t, 1, v)
 
-	v, ok = s.Get("b")
+	v, ok = s.GetCurrent("b")
 	assert.True(t, ok)
 	assert.Equal(t, 2, v)
 
 	s.Del("a")
-	_, ok = s.Get("a")
+	_, ok = s.GetCurrent("a")
 	assert.False(t, ok)
+}
+
+func TestSyncStore_Basic2(t *testing.T) {
+	t.Parallel()
+
+	var s dot.SyncStore[string, int]
+
+	v := s.GetOrPut("a", func() int {
+		return 1
+	})
+	assert.Equal(t, 1, v)
+	v = s.GetOrPut("a", func() int {
+		return -1
+	})
+	assert.Equal(t, 1, v)
+
+	v = s.GetOrPut("b", func() int {
+		return 2
+	})
+	assert.Equal(t, 2, v)
 }
 
 func TestSyncStore_ForEach(t *testing.T) {
 	t.Parallel()
 
 	var s dot.SyncStore[int, string]
-	s.Add(1, "one")
-	s.Add(2, "two")
+	s.Put(1, "one")
+	s.Put(2, "two")
 
 	m := map[int]string{}
 	s.ForEach(func(k int, v string) {
@@ -48,8 +68,8 @@ func TestSyncStore_Iterator(t *testing.T) {
 	t.Parallel()
 
 	var s dot.SyncStore[int, string]
-	s.Add(1, "one")
-	s.Add(2, "two")
+	s.Put(1, "one")
+	s.Put(2, "two")
 
 	result := map[int]string{}
 	for pair := range s.Iterator() {
@@ -63,8 +83,8 @@ func TestSyncStore_Seq(t *testing.T) {
 	t.Parallel()
 
 	var s dot.SyncStore[int, string]
-	s.Add(1, "one")
-	s.Add(2, "two")
+	s.Put(1, "one")
+	s.Put(2, "two")
 
 	vals := map[string]bool{}
 	s.Seq()(func(v string) bool {
@@ -79,8 +99,8 @@ func TestSyncStore_Seq2(t *testing.T) {
 	t.Parallel()
 
 	var s dot.SyncStore[int, string]
-	s.Add(1, "one")
-	s.Add(2, "two")
+	s.Put(1, "one")
+	s.Put(2, "two")
 
 	vals := map[int]string{}
 	s.Seq2()(func(k int, v string) bool {
@@ -100,7 +120,7 @@ func TestSyncStore_Concurrent(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			s.Add(i, i*i)
+			s.Put(i, i*i)
 		}(i)
 	}
 	wg.Wait()
