@@ -10,15 +10,15 @@ type SyncStore[K comparable, V any] struct {
 }
 
 // Preallocate - init internal map with specified size
-func (s *SyncStore[K, V]) Preallocate(mapCapacity int) {
+func (s *SyncStore[K, V]) Preallocate(mapSize int) {
 	s.mx.Lock()
 	defer s.mx.Unlock()
 	if s.storage == nil {
-		s.storage = make(map[K]V, mapCapacity)
+		s.storage = make(map[K]V, mapSize)
 	}
 }
 
-func (s *SyncStore[K, V]) Add(key K, val V) {
+func (s *SyncStore[K, V]) Put(key K, val V) {
 	s.mx.Lock()
 	defer s.mx.Unlock()
 	if s.storage == nil {
@@ -27,7 +27,7 @@ func (s *SyncStore[K, V]) Add(key K, val V) {
 	s.storage[key] = val
 }
 
-func (s *SyncStore[K, V]) Get(key K) (val V, founded bool) {
+func (s *SyncStore[K, V]) GetCurrent(key K) (val V, founded bool) {
 	if s.storage != nil {
 		s.mx.RLock()
 		defer s.mx.RUnlock()
@@ -35,6 +35,30 @@ func (s *SyncStore[K, V]) Get(key K) (val V, founded bool) {
 	}
 
 	return val, founded
+}
+
+func (s *SyncStore[K, V]) GetOrPut(key K, maker func() V) V {
+	val, founded := s.GetCurrent(key)
+	if founded {
+		return val
+	}
+
+	s.mx.Lock()
+	defer s.mx.Unlock()
+
+	if s.storage == nil {
+		s.storage = make(map[K]V)
+	}
+
+	val, founded = s.storage[key]
+	if founded {
+		return val
+	}
+
+	val = maker()
+	s.storage[key] = val
+
+	return val
 }
 
 func (s *SyncStore[K, V]) Del(key K) {
