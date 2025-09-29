@@ -1,10 +1,9 @@
-package repack_test
+package dot_test
 
 import (
 	"testing"
 
-	"github.com/mirrorru/dot/repack"
-
+	"github.com/mirrorru/dot"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +26,7 @@ func TestSplitCamelCase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
 			t.Parallel()
-			got := repack.SplitCamelCase(tt.input)
+			got := dot.SplitCamelCase(tt.input)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -48,7 +47,7 @@ func TestToSnakeCase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
 			t.Parallel()
-			got := repack.ToSnakeCase(tt.input)
+			got := dot.ToSnakeCase(tt.input)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -69,7 +68,7 @@ func TestToKebabCase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
 			t.Parallel()
-			got := repack.ToKebabCase(tt.input)
+			got := dot.ToKebabCase(tt.input)
 			assert.Equal(t, tt.want, got)
 		})
 	}

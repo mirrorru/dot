@@ -1,4 +1,4 @@
-package repack
+package dot
 
 import (
 	"strings"
