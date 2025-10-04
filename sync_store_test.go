@@ -116,12 +116,17 @@ func TestSyncStore_Concurrent(t *testing.T) {
 
 	var s dot.SyncStore[int, int]
 	wg := sync.WaitGroup{}
-	for i := range 100 {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			s.Put(i, i*i)
-		}(i)
+	goFn := func() {
+		for i := range 100 {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				s.Put(i, i*i)
+			}(i)
+		}
+	}
+	for i := 0; i < 25; i++ {
+		goFn()
 	}
 	wg.Wait()
 

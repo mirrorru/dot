@@ -19,6 +19,11 @@ test: ## Starts unit-tests
 	@echo "Start unit-tests..."
 	go test ./...
 
+.PHONY: race-test
+test: ## Starts Race-tests
+	@echo "Start Race-tests..."
+	go test -race ./...
+
 .PHONY: install-bin
 install-bin: .install-golangci ## Install binaries
 
