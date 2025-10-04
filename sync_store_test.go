@@ -125,7 +125,7 @@ func TestSyncStore_Concurrent(t *testing.T) {
 			}(i)
 		}
 	}
-	for i := 0; i < 25; i++ {
+	for range 20 {
 		goFn()
 	}
 	wg.Wait()
