@@ -48,3 +48,11 @@ func GetIf[T any](condition bool, resultOnTrue T) (result T) {
 
 	return result
 }
+
+func FirstOfTwo[T1, T2 any](arg1 T1, _ T2) T1 {
+	return arg1
+}
+
+func SecondOfTwo[T1, T2 any](_ T1, arg2 T2) T2 {
+	return arg2
+}
