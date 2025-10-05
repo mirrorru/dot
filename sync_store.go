@@ -28,11 +28,12 @@ func (s *SyncStore[K, V]) Put(key K, val V) {
 }
 
 func (s *SyncStore[K, V]) GetCurrent(key K) (val V, founded bool) {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
+
 	if s.storage == nil {
 		return val, founded
 	}
-	s.mx.RLock()
-	defer s.mx.RUnlock()
 	val, founded = s.storage[key]
 
 	return val, founded
