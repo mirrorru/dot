@@ -108,18 +108,22 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 				return nil, err
 			}
 		}
-		switch targetType.Kind() {
-		case reflect.Uint:
-			return uint(val), nil
-		case reflect.Uint8:
-			return uint8(val), nil //nolint:gosec
-		case reflect.Uint16:
-			return uint16(val), nil //nolint:gosec
-		case reflect.Uint32:
-			return uint32(val), nil //nolint:gosec
-		case reflect.Uint64:
-			return val, nil
-		}
+		retVal := reflect.New(targetType).Elem()
+		retVal.SetUint(val)
+		return retVal.Interface(), nil
+
+		//switch targetType.Kind() {
+		//case reflect.Uint:
+		//	return uint(val), nil
+		//case reflect.Uint8:
+		//	return uint8(val), nil //nolint:gosec
+		//case reflect.Uint16:
+		//	return uint16(val), nil //nolint:gosec
+		//case reflect.Uint32:
+		//	return uint32(val), nil //nolint:gosec
+		//case reflect.Uint64:
+		//	return val, nil
+		//}
 
 	case reflect.Float32, reflect.Float64:
 		var val float64
