@@ -1,6 +1,7 @@
 package dot
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -40,6 +41,7 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 			return reflect.ValueOf(val).Elem().Interface(), nil
 		}()
 		if err == nil {
+			// return on success
 			return result, nil
 		}
 	}
@@ -61,10 +63,16 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 	// Handle built-in types
 	switch targetType.Kind() {
 	case reflect.String:
-		if inputType == reflect.String {
-			return input, nil
+		var val string
+		switch inputType {
+		case reflect.String:
+			val = reflect.ValueOf(input).String()
+		default:
+			val = inputStr()
 		}
-		return inputStr(), nil
+		retVal := reflect.New(targetType).Elem()
+		retVal.SetString(val)
+		return retVal.Interface(), nil
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		var val int64
@@ -80,18 +88,9 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 				return nil, err
 			}
 		}
-		switch targetType.Kind() {
-		case reflect.Int:
-			return int(val), nil
-		case reflect.Int8:
-			return int8(val), nil //nolint:gosec
-		case reflect.Int16:
-			return int16(val), nil //nolint:gosec
-		case reflect.Int32:
-			return int32(val), nil //nolint:gosec
-		case reflect.Int64:
-			return val, nil
-		}
+		retVal := reflect.New(targetType).Elem()
+		retVal.SetInt(val)
+		return retVal.Interface(), nil
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		var val uint64
@@ -112,19 +111,6 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 		retVal.SetUint(val)
 		return retVal.Interface(), nil
 
-		//switch targetType.Kind() {
-		//case reflect.Uint:
-		//	return uint(val), nil
-		//case reflect.Uint8:
-		//	return uint8(val), nil //nolint:gosec
-		//case reflect.Uint16:
-		//	return uint16(val), nil //nolint:gosec
-		//case reflect.Uint32:
-		//	return uint32(val), nil //nolint:gosec
-		//case reflect.Uint64:
-		//	return val, nil
-		//}
-
 	case reflect.Float32, reflect.Float64:
 		var val float64
 		inputType := reflect.TypeOf(input).Kind()
@@ -140,10 +126,9 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 				return nil, err
 			}
 		}
-		if targetType.Kind() == reflect.Float32 {
-			return float32(val), nil
-		}
-		return val, nil
+		retVal := reflect.New(targetType).Elem()
+		retVal.SetFloat(val)
+		return retVal.Interface(), nil
 
 	case reflect.Bool:
 		var val bool
@@ -160,10 +145,10 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 				return nil, err
 			}
 		}
-		return val, nil
+		retVal := reflect.New(targetType).Elem()
+		retVal.SetBool(val)
+		return retVal.Interface(), nil
 	}
 
-	// Return nil and an error for unsupported types
-	return nil, fmt.Errorf("unsupported type: %v", targetType)
-
+	return nil, errors.Join(err, fmt.Errorf("unsupported type: %v", targetType))
 }
