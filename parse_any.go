@@ -36,7 +36,7 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 				return nil, fmt.Errorf("type %v claims to implement Scanner but does not", targetType)
 			}
 			if err = scanner.Scan(input); err != nil {
-				return nil, fmt.Errorf("Scanner failed for type %v: %w", targetType, err)
+				return nil, fmt.Errorf("scanner failed for type %v: %w", targetType, err)
 			}
 			return reflect.ValueOf(val).Elem().Interface(), nil
 		}()
@@ -94,7 +94,6 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		var val uint64
-		inputType := reflect.TypeOf(input).Kind()
 		switch inputType {
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			val = reflect.ValueOf(input).Uint()
@@ -113,7 +112,6 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 
 	case reflect.Float32, reflect.Float64:
 		var val float64
-		inputType := reflect.TypeOf(input).Kind()
 		switch inputType {
 		case reflect.Float32, reflect.Float64:
 			val = reflect.ValueOf(input).Float()
@@ -132,7 +130,6 @@ func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
 
 	case reflect.Bool:
 		var val bool
-		inputType := reflect.TypeOf(input).Kind()
 		switch inputType {
 		case reflect.Bool:
 			val = reflect.ValueOf(input).Bool()

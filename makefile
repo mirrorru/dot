@@ -40,6 +40,14 @@ lint: ## code checks with golangci
 		--config=.golangci.yaml \
 		--new-from-rev=origin/main \
 		--max-issues-per-linter=100 \
+		--max-same-issues=50
+
+.PHONY: lint-full
+lint-full: ## full code checks with golangci
+	clear
+	$(LOCAL_BIN)/golangci-lint run \
+		--config=.golangci.golden.yaml \
+		--max-issues-per-linter=100 \
 		--max-same-issues=50 \
 		./...
 
