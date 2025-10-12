@@ -1,7 +1,6 @@
 package dot
 
 import (
-	"database/sql"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -18,23 +17,31 @@ func MakeTypedVar(targetType reflect.Type, initialValue any) any {
 
 // ParseTypedVar parses a any into a value of the specified reflect.Type and returns it as any.
 // Returns nil and an error if parsing fails or the type is unsupported.
-// If the type implements sql.Scanner, it uses the Scan method for parsing.
+// If the type implements Scanner, it uses the Scan method for parsing.
 //
 //nolint:gocognit,exhaustive,cyclop,funlen
-func ParseTypedVar(targetType reflect.Type, input any) (_ any, err error) {
-	// Check if the type implements sql.Scanner
-	if reflect.PointerTo(targetType).Implements(reflect.TypeOf((*sql.Scanner)(nil)).Elem()) {
-		// Create a new instance of the type
-		val := reflect.New(targetType).Interface()
-		scanner, ok := val.(sql.Scanner)
-		if !ok {
-			return nil, fmt.Errorf("type %v claims to implement sql.Scanner but does not", targetType)
+func ParseTypedVar(targetType reflect.Type, input any) (result any, err error) {
+	type Scanner interface {
+		Scan(src any) error
+	}
+
+	// Check if the type implements Scanner
+	if reflect.PointerTo(targetType).Implements(reflect.TypeOf((*Scanner)(nil)).Elem()) {
+		result, err = func() (any, error) {
+			// Create a new instance of the type
+			val := reflect.New(targetType).Interface()
+			scanner, ok := val.(Scanner)
+			if !ok {
+				return nil, fmt.Errorf("type %v claims to implement Scanner but does not", targetType)
+			}
+			if err = scanner.Scan(input); err != nil {
+				return nil, fmt.Errorf("Scanner failed for type %v: %w", targetType, err)
+			}
+			return reflect.ValueOf(val).Elem().Interface(), nil
+		}()
+		if err == nil {
+			return result, nil
 		}
-		// Use the Scanner interface to parse the inputStr string
-		if err = scanner.Scan(input); err != nil {
-			return nil, fmt.Errorf("sql.Scanner failed for type %v: %w", targetType, err)
-		}
-		return reflect.ValueOf(val).Elem().Interface(), nil
 	}
 
 	inputStr := func() string {
@@ -49,17 +56,25 @@ func ParseTypedVar(targetType reflect.Type, input any) (_ any, err error) {
 		}
 		return inputStr
 	}
+	inputType := reflect.TypeOf(input).Kind()
+
 	// Handle built-in types
 	switch targetType.Kind() {
 	case reflect.String:
+		if inputType == reflect.String {
+			return input, nil
+		}
 		return inputStr(), nil
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		var val int64
-		inputType := reflect.TypeOf(input).Kind()
 		switch inputType {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			val = reflect.ValueOf(input).Int()
+		case reflect.String:
+			if val, err = strconv.ParseInt(input.(string), 10, targetType.Bits()); err != nil {
+				return nil, err
+			}
 		default:
 			if val, err = strconv.ParseInt(inputStr(), 10, targetType.Bits()); err != nil {
 				return nil, err
@@ -84,6 +99,10 @@ func ParseTypedVar(targetType reflect.Type, input any) (_ any, err error) {
 		switch inputType {
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			val = reflect.ValueOf(input).Uint()
+		case reflect.String:
+			if val, err = strconv.ParseUint(input.(string), 10, targetType.Bits()); err != nil {
+				return nil, err
+			}
 		default:
 			if val, err = strconv.ParseUint(inputStr(), 10, targetType.Bits()); err != nil {
 				return nil, err
@@ -108,6 +127,10 @@ func ParseTypedVar(targetType reflect.Type, input any) (_ any, err error) {
 		switch inputType {
 		case reflect.Float32, reflect.Float64:
 			val = reflect.ValueOf(input).Float()
+		case reflect.String:
+			if val, err = strconv.ParseFloat(inputStr(), targetType.Bits()); err != nil {
+				return nil, err
+			}
 		default:
 			if val, err = strconv.ParseFloat(inputStr(), targetType.Bits()); err != nil {
 				return nil, err
@@ -124,6 +147,10 @@ func ParseTypedVar(targetType reflect.Type, input any) (_ any, err error) {
 		switch inputType {
 		case reflect.Bool:
 			val = reflect.ValueOf(input).Bool()
+		case reflect.String:
+			if val, err = strconv.ParseBool(input.(string)); err != nil {
+				return nil, err
+			}
 		default:
 			if val, err = strconv.ParseBool(inputStr()); err != nil {
 				return nil, err
@@ -134,4 +161,5 @@ func ParseTypedVar(targetType reflect.Type, input any) (_ any, err error) {
 
 	// Return nil and an error for unsupported types
 	return nil, fmt.Errorf("unsupported type: %v", targetType)
+
 }
