@@ -12,26 +12,21 @@ import (
 )
 
 // mockScanner is a mock implementation of sql.Scanner for testing
-type mockScanner struct {
-	value string
-	err   error
-}
+type mockScanner int
 
 func (m *mockScanner) Scan(src any) error {
-	if m.err != nil {
-		return m.err
+	val, ok := src.(int)
+	if !ok {
+		return errors.New("value is not a int")
 	}
-	var ok bool
-	if m.value, ok = src.(string); !ok {
-		return errors.New("value is not a string")
-	}
+	*m = mockScanner(val)
 	return nil
 }
 
 func TestParseTypedVar(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
+	var tests = []struct {
 		name        string
 		targetType  reflect.Type
 		input       any
@@ -186,21 +181,27 @@ func TestParseTypedVar(t *testing.T) {
 			expectedErr: true,
 		},
 
-		// sql.Scanner tests
+		// Scanner tests
 		{
-			name:       "sql.Scanner success",
-			targetType: reflect.TypeOf(mockScanner{}),
-			input:      "test",
-			expected:   mockScanner{value: "test"},
+			name:       "Scanner success int64",
+			targetType: reflect.TypeOf(mockScanner(1)),
+			input:      42,
+			expected:   mockScanner(42),
 		},
 		{
-			name:        "sql.Scanner failure",
-			targetType:  reflect.TypeOf(mockScanner{}),
-			input:       42,
+			name:       "Scanner success string",
+			targetType: reflect.TypeOf(mockScanner(1)),
+			input:      "42",
+			expected:   mockScanner(42),
+		},
+		{
+			name:        "Scanner failure",
+			targetType:  reflect.TypeOf(mockScanner(1)),
+			input:       "test",
 			expectedErr: true,
 		},
 		{
-			name:        "invalid sql.Scanner type",
+			name:        "invalid Scanner type",
 			targetType:  reflect.TypeOf(&struct{}{}),
 			input:       "test",
 			expectedErr: true,
@@ -214,7 +215,6 @@ func TestParseTypedVar(t *testing.T) {
 			expectedErr: true,
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
