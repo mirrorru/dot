@@ -89,17 +89,25 @@ func (r Result[T]) ToOption() Option[T] {
 	return Option[T]{Val: r.val, Ok: true}
 }
 
-func ConvertResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error)) Result[T2] {
-	return FromResult(res, converter)
+// TransformResult - make new `Result[T2]` from  `Result[T1]` by `func(T1)Result[T2]`
+func TransformResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error)) Result[T2] {
+	return MakeResult(ResultDecodeError(res, converter))
 }
 
-// FromResult - make new `Result[T2]` from  `Result[T1]` by `func(T1)Result[T2]`
-func FromResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, error)) Result[T2] {
-	if res.err != nil {
-		return Result[T2]{err: res.err}
+func ResultDecode[T1, T2 any](input Result[T1], valueDecoder func(src T1) T2) (newVal T2, _ error) {
+	if input.err == nil {
+		newVal = valueDecoder(input.val)
 	}
 
-	return MakeResult(converter(res.val))
+	return newVal, input.err
+}
+
+func ResultDecodeError[T1, T2 any](input Result[T1], valueDecoder func(src T1) (T2, error)) (newVal T2, _ error) {
+	if input.err == nil {
+		return valueDecoder(input.val)
+	}
+
+	return newVal, input.err
 }
 
 var errWrongCastingType = errors.New("wrong casting type")

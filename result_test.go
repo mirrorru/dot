@@ -185,7 +185,7 @@ func TestResult_ToOption(t *testing.T) {
 	})
 }
 
-func TestConvertResult(t *testing.T) {
+func TestTransformResult(t *testing.T) {
 	t.Parallel()
 
 	t.Run("propagates error from source result", func(t *testing.T) {
@@ -197,7 +197,7 @@ func TestConvertResult(t *testing.T) {
 			return "converted", nil
 		}
 
-		result := ConvertResult(srcRes, converter)
+		result := TransformResult(srcRes, converter)
 		assert.True(t, result.IsErr())
 		assert.Equal(t, srcErr, result.Err())
 	})
@@ -209,7 +209,7 @@ func TestConvertResult(t *testing.T) {
 			return "converted", nil
 		}
 
-		result := ConvertResult(srcRes, converter)
+		result := TransformResult(srcRes, converter)
 		assert.False(t, result.IsErr())
 		assert.Equal(t, "converted", result.Val())
 	})
@@ -222,7 +222,7 @@ func TestConvertResult(t *testing.T) {
 			return "", converterErr
 		}
 
-		result := ConvertResult(srcRes, converter)
+		result := TransformResult(srcRes, converter)
 		assert.True(t, result.IsErr())
 		assert.Equal(t, converterErr, result.Err())
 	})
@@ -387,7 +387,7 @@ func TestCastResult(t *testing.T) {
 	})
 }
 
-func TestFromResult(t *testing.T) {
+func TestResultDecode(t *testing.T) {
 	t.Parallel()
 
 	t.Run("result without error", func(t *testing.T) {
@@ -395,11 +395,11 @@ func TestFromResult(t *testing.T) {
 		val := 40
 		res1 := MakeResult(val, nil)
 
-		res2 := FromResult(res1, func(src int) (int, error) {
-			return src + 2, nil
+		val2, err2 := ResultDecode(res1, func(src int) int {
+			return src + 2
 		})
-		require.NoError(t, res2.err)
-		assert.Equal(t, 42, res2.val)
+		require.NoError(t, err2)
+		assert.Equal(t, 42, val2)
 	})
 
 	t.Run("result without error", func(t *testing.T) {
@@ -407,20 +407,10 @@ func TestFromResult(t *testing.T) {
 		val := 40
 		res1 := MakeResult(val, assert.AnError)
 
-		res2 := FromResult(res1, func(src int) (int, error) {
-			return src + 2, nil
+		val2, err2 := ResultDecode(res1, func(src int) int {
+			return src + 2
 		})
-		require.ErrorIs(t, res2.Err(), assert.AnError)
-	})
-
-	t.Run("processing error", func(t *testing.T) {
-		t.Parallel()
-		val := 40
-		res1 := MakeResult(val, nil)
-
-		res2 := FromResult(res1, func(_ int) (int, error) {
-			return 0, assert.AnError
-		})
-		require.ErrorIs(t, res2.Err(), assert.AnError)
+		require.Error(t, err2)
+		assert.Empty(t, val2)
 	})
 }
