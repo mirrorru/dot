@@ -1,6 +1,7 @@
 package dot
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -94,6 +95,11 @@ func TransformResult[T1, T2 any](res Result[T1], converter func(src T1) (T2, err
 	return MakeResult(ResultDecodeError(res, converter))
 }
 
+// TransformCtxResult - make new `Result[T2]` from  `Result[T1]` by `func(ctx, T1)Result[T2]`
+func TransformCtxResult[T1, T2 any](ctx context.Context, res Result[T1], converter func(ctx context.Context, src T1) (T2, error)) Result[T2] {
+	return MakeResult(ResultDecodeCtxError(ctx, res, converter))
+}
+
 func ResultDecode[T1, T2 any](input Result[T1], valueDecoder func(src T1) T2) (newVal T2, _ error) {
 	if input.err == nil {
 		newVal = valueDecoder(input.val)
@@ -105,6 +111,14 @@ func ResultDecode[T1, T2 any](input Result[T1], valueDecoder func(src T1) T2) (n
 func ResultDecodeError[T1, T2 any](input Result[T1], valueDecoder func(src T1) (T2, error)) (newVal T2, _ error) {
 	if input.err == nil {
 		return valueDecoder(input.val)
+	}
+
+	return newVal, input.err
+}
+
+func ResultDecodeCtxError[T1, T2 any](ctx context.Context, input Result[T1], valueDecoder func(ctx context.Context, src T1) (T2, error)) (newVal T2, _ error) {
+	if input.err == nil {
+		return valueDecoder(ctx, input.val)
 	}
 
 	return newVal, input.err
