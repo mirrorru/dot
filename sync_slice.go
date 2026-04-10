@@ -10,6 +10,19 @@ type SyncSlice[T any] struct {
 	values []T
 }
 
+func NewSyncSlice[T any](length, capacity int) *SyncSlice[T] {
+	s := MakeSyncSlice[T](length, capacity)
+	return &s
+}
+
+func MakeSyncSlice[T any](length, capacity int) SyncSlice[T] {
+	return SyncSlice[T]{
+		values: make([]T, length, capacity),
+	}
+}
+
+// InitSize - set internal slice length and capacity
+// Depricated: use MakeSyncSlice
 func (s *SyncSlice[T]) InitSize(length, capacity int) {
 	if s.values == nil {
 		s.values = make([]T, length, capacity)

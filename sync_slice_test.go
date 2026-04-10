@@ -7,6 +7,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestSyncSlice_NewSyncSlice(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		length   int
+		capacity int
+	}{
+		{"zero length", 0, 0},
+		{"non-zero length", 2, 5},
+		{"len=cap", 3, 3},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := NewSyncSlice[int](tt.length, tt.capacity)
+
+			assert.Len(t, s.values, tt.length)
+			assert.Equal(t, tt.capacity, cap(s.values))
+		})
+	}
+}
+
 func TestSyncSlice_InitSize(t *testing.T) {
 	t.Parallel()
 
